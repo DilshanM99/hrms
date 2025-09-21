@@ -116,3 +116,11 @@ $route['payroll/store_employee_allowance/(:num)'] = 'payroll/payroll/store_emplo
 $route['payroll/remove_employee_allowance/(:num)/(:num)'] = 'payroll/payroll/remove_employee_allowance/$1/$2';
 $route['payroll/store_employee_deduction/(:num)'] = 'payroll/payroll/store_employee_deduction/$1';
 $route['payroll/remove_employee_deduction/(:num)/(:num)'] = 'payroll/payroll/remove_employee_deduction/$1/$2';
+
+// Bulk Assignment Routes
+$route['employee/bulk_assign_allowance'] = 'employee/employee/bulk_assign_allowance';
+$route['employee/bulk_assign_deduction'] = 'employee/employee/bulk_assign_deduction';
+
+// Single Assignment Routes
+$route['employee/assign_allowance/(:num)'] = 'employee/employee/assign_allowance/$1';
+$route['employee/assign_deduction/(:num)'] = 'employee/employee/assign_deduction/$1';

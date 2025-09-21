@@ -206,4 +206,62 @@ class Employee_service {
         $this->CI->db->where('employee_id', $employee_id);
         return $this->CI->db->delete('employee_designations');
     }
+
+    public function bulk_assign_allowances($allowance_ids, $department_ids, $designation_ids, $employee_ids, $amount, $start_date, $expire_date)
+    {
+        log_message('debug', 'Bulk assigning allowances: ' . print_r($allowance_ids, TRUE));
+        $this->CI->db->trans_start();
+        try {
+            // Fetch employees based on selections
+            $this->CI->db->select('id');
+            if (!empty($employee_ids)) {
+                $this->CI->db->where_in('id', $employee_ids);
+            }
+            if (!empty($department_ids)) {
+                $this->CI->db->where_in('department_id', $department_ids);
+            }
+            if (!empty($designation_ids)) {
+                $this->CI->db->where_in('designation_id', $designation_ids);
+            }
+            $query = $this->CI->db->get('employees');
+            $employees = $query->result_array();
+            log_message('debug', 'Employees to assign allowances: ' . print_r($employees, TRUE));
+
+            if (empty($employees)) {
+                $this->CI->db->trans_rollback();
+                return 'No employees found for the selected criteria.';
+            }
+
+            // Check existing allowances to prevent duplicates
+            foreach ($employees as $employee) {
+                foreach ($allowance_ids as $allowance_id) {
+                    $this->CI->db->where('employee_id', $employee['id']);
+                    $this->CI->db->where('allowance_id', $allowance_id);
+                    $query = $this->CI->db->get('employee_allowances');
+                    if ($query->num_rows() == 0) {
+                        $allowance_data = array(
+                            'employee_id' => $employee['id'],
+                            'allowance_id' => $allowance_id,
+                            'amount' => $amount,
+                            'start_date' => $start_date,
+                            'expire_date' => $expire_date
+                        );
+                        $this->CI->db->insert('employee_allowances', $allowance_data);
+                    }
+                }
+            }
+
+            $this->CI->db->trans_complete();
+            if ($this->CI->db->trans_status() === FALSE) {
+                log_message('error', 'Bulk assign allowances transaction failed');
+                return 'Failed to assign allowances due to database error.';
+            }
+            log_message('debug', 'Bulk assign allowances result: Success');
+            return TRUE;
+        } catch (Exception $e) {
+            $this->CI->db->trans_rollback();
+            log_message('error', 'Bulk assign allowances failed: ' . $e->getMessage());
+            return 'Failed to assign allowances: ' . $e->getMessage();
+        }
+    }
 }

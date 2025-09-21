@@ -1,4 +1,4 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<!-- <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <nav class="sidebar w-64 bg-white shadow-md flex-shrink-0">
     <div class="p-4 border-b border-gray-200">
         <h2 class="text-xl font-bold text-gray-900">EMS</h2>
@@ -49,4 +49,134 @@
             </a>
         </li>
     </ul>
+</nav> -->
+
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<!-- Sidebar navigation for HRMS application -->
+<nav class="sidebar w-64 bg-white shadow-md flex-shrink-0">
+    <!-- Sidebar header with application name -->
+    <div class="p-4 border-b border-gray-200">
+        <h2 class="text-xl font-bold text-gray-900">EMS</h2>
+    </div>
+    
+    <!-- Main navigation menu -->
+    <ul class="flex-1 px-2 py-4 space-y-1">
+        <!-- Employees menu item -->
+        <li>
+            <a href="<?php echo site_url('employee'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('employee') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                Employees
+            </a>
+        </li>
+
+        <?php if ($this->session->userdata('role') === 'Admin' || $this->session->userdata('role') === 'HR'): ?>
+            <!-- Masters menu group with toggle -->
+            <li>
+                <button onclick="toggleSubmenu('masters-submenu')" class="flex items-center w-full px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group">
+                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                    </svg>
+                    Masters
+                    <svg id="masters-chevron" class="w-4 h-4 ml-auto text-gray-400 group-hover:text-indigo-600 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <!-- Submenu for Masters (hidden by default) -->
+                <ul id="masters-submenu" class="pl-6 space-y-1 hidden">
+                    <!-- Departments -->
+                    <li>
+                        <a href="<?php echo site_url('employee/masters/departments'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('employee/masters/departments') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                            <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                            Departments
+                        </a>
+                    </li>
+                    <!-- Designations -->
+                    <li>
+                        <a href="<?php echo site_url('employee/masters/designations'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('employee/masters/designations') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                            <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Designations
+                        </a>
+                    </li>
+                    <!-- Allowances -->
+                    <li>
+                        <a href="<?php echo site_url('payroll/allowances'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('payroll/allowances') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                            <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h-3m3 0h3m-9 6h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Allowances
+                        </a>
+                    </li>
+                    <!-- Deductions -->
+                    <li>
+                        <a href="<?php echo site_url('payroll/deductions'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('payroll/deductions') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                            <svg class="w-4 h-4 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Deductions
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Payroll Runs -->
+            <li>
+                <a href="<?php echo site_url('payroll'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('payroll') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Payroll Runs
+                </a>
+            </li>
+
+            <!-- Allowance Assignment -->
+            <li>
+                <a href="<?php echo site_url('employee/bulk_assign_allowance'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('employee/bulk_assign_allowance') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    Allowance Assignment
+                </a>
+            </li>
+
+            <!-- Deduction Assignment -->
+            <li>
+                <a href="<?php echo site_url('employee/bulk_assign_deduction'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group <?php echo current_url() === site_url('employee/bulk_assign_deduction') ? 'bg-indigo-50 text-indigo-600' : ''; ?>">
+                    <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    Deduction Assignment
+                </a>
+            </li>
+        <?php endif; ?>
+
+        <!-- Logout -->
+        <li>
+            <a href="<?php echo site_url('auth/logout'); ?>" class="flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 group">
+                <svg class="w-5 h-5 mr-3 text-gray-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Logout
+            </a>
+        </li>
+    </ul>
 </nav>
+
+<!-- JavaScript for toggling Masters submenu -->
+<script>
+    /**
+     * Toggles the visibility of a submenu and rotates the chevron icon.
+     * @param {string} submenuId - The ID of the submenu element to toggle.
+     */
+    function toggleSubmenu(submenuId) {
+        const submenu = document.getElementById(submenuId);
+        const chevron = document.getElementById(submenuId.replace('submenu', 'chevron'));
+        submenu.classList.toggle('hidden');
+        chevron.classList.toggle('rotate-180');
+    }
+</script>

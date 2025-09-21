@@ -105,6 +105,7 @@
 
 <!-- <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?> -->
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <div class="flex-1 flex flex-col overflow-hidden">
     <main class="flex-1 overflow-y-auto">
         <div class="container mx-auto px-4 py-8 pb-10">
@@ -116,7 +117,6 @@
                 </a>
             </div>
 
-            <!-- Flash Messages -->
             <?php if (validation_errors()): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -136,24 +136,27 @@
                 </div>
             <?php endif; ?>
 
-            <!-- Form -->
             <?php echo form_open('employee/store', ['class' => 'grid grid-cols-1 md:grid-cols-2 gap-6']); ?>
                 <?php echo form_hidden($csrf['name'], $csrf['hash']); ?>
                 <div class="col-span-1">
                     <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
                     <input type="text" name="first_name" id="first_name" value="<?php echo set_value('first_name'); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <?php echo form_error('first_name', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
                     <input type="text" name="last_name" id="last_name" value="<?php echo set_value('last_name'); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <?php echo form_error('last_name', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                     <input type="email" name="email" id="email" value="<?php echo set_value('email'); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <?php echo form_error('email', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
                     <input type="text" name="phone" id="phone" value="<?php echo set_value('phone'); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <?php echo form_error('phone', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="department_id" class="block text-sm font-medium text-gray-700">Department</label>
@@ -163,22 +166,24 @@
                             <option value="<?php echo $department['id']; ?>" <?php echo set_select('department_id', $department['id']); ?>><?php echo html_escape($department['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php echo form_error('department_id', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="designation_id" class="block text-sm font-medium text-gray-700">Designation</label>
                     <select name="designation_id" id="designation_id" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
                         <option value="">Select Designation</option>
                         <?php foreach ($designations as $designation): ?>
-                            <option value="<?php echo $designation['id']; ?>" <?php echo set_select('designation_id', $designation['id']); ?>><?php echo html_escape($designation['name']); ?></option>
+                            <option value="<?php echo $designation['id']; ?>" data-department-id="<?php echo $designation['department_id']; ?>" <?php echo set_select('designation_id', $designation['id']); ?>><?php echo html_escape($designation['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php echo form_error('designation_id', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
                 <div class="col-span-1">
                     <label for="salary" class="block text-sm font-medium text-gray-700">Basic Salary</label>
                     <input type="number" name="salary" id="salary" value="<?php echo set_value('salary'); ?>" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                    <?php echo form_error('salary', '<p class="text-red-500 text-sm mt-1">', '</p>'); ?>
                 </div>
 
-                <!-- Allowances -->
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Allowances</label>
                     <div id="allowances-container" class="space-y-4">
@@ -213,7 +218,6 @@
                     </button>
                 </div>
 
-                <!-- Deductions -->
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Deductions</label>
                     <div id="deductions-container" class="space-y-4">
@@ -269,6 +273,50 @@
         let allowanceIndex = 2;
         let deductionIndex = 2;
 
+        // Store all designations for client-side filtering
+        var designations = <?php echo json_encode($designations); ?>;
+
+        // Handle department change
+        $('#department_id').on('change', function() {
+            var departmentId = $(this).val();
+            var $designationDropdown = $('#designation_id');
+            
+            // Clear existing options except the default
+            $designationDropdown.find('option:not(:first)').remove();
+            
+            if (departmentId) {
+                // Filter designations by department_id
+                var filteredDesignations = designations.filter(function(designation) {
+                    return designation.department_id == departmentId;
+                });
+
+                // Add filtered designations to dropdown
+                $.each(filteredDesignations, function(index, designation) {
+                    $designationDropdown.append(
+                        $('<option></option>').val(designation.id).text(designation.name)
+                    );
+                });
+
+                // If no designations found, fetch from server
+                if (filteredDesignations.length === 0) {
+                    $.get('<?php echo site_url('employee/get_designations_by_department'); ?>', 
+                        { department_id: departmentId }, 
+                        function(data) {
+                            $.each(data, function(index, designation) {
+                                $designationDropdown.append(
+                                    $('<option></option>').val(designation.id).text(designation.name)
+                                );
+                            });
+                        }, 'json'
+                    );
+                }
+            }
+        });
+
+        // Trigger change on page load to populate designations if department is pre-selected
+        $('#department_id').trigger('change');
+
+        // Add allowance row
         $('#add-allowance').click(function() {
             $('#allowances-container').append(`
                 <div class="flex items-center space-x-4 allowance-row">
@@ -297,6 +345,7 @@
             allowanceIndex++;
         });
 
+        // Add deduction row
         $('#add-deduction').click(function() {
             $('#deductions-container').append(`
                 <div class="flex items-center space-x-4 deduction-row">
@@ -325,6 +374,7 @@
             deductionIndex++;
         });
 
+        // Remove allowance or deduction row
         $(document).on('click', '.remove-row', function() {
             $(this).closest('.allowance-row, .deduction-row').remove();
         });
