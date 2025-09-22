@@ -65,7 +65,7 @@ class Employee extends MX_Controller
         $this->load->view('layouts/footer');
     }
 
-    
+
     public function store()
     {
         $this->form_validation->set_rules('first_name', 'First Name', 'required|trim|max_length[50]');
@@ -380,50 +380,9 @@ class Employee extends MX_Controller
         return TRUE;
     }
 
-     public function bulk_assign_allowance()
+    public function bulk_assign_allowance()
     {
-        // $data['title'] = 'Bulk Assign Allowance';
-        // $data['allowances'] = $this->payroll_service->get_all_allowances();
-        // $data['employees'] = $this->employee_service->get_all_employees();
-        // $data['csrf'] = [
-        //     'name' => $this->security->get_csrf_token_name(),
-        //     'hash' => $this->security->get_csrf_hash()
-        // ];
 
-        // if ($this->input->post()) {
-        //     $allowance_id = $this->input->post('allowance_id');
-        //     $employee_ids = $this->input->post('employee_ids') ?: [];
-        //     $months = $this->input->post('months') ?: [];
-        //     $year = $this->input->post('year') ?: null;
-
-        //     if (empty($employee_ids) || empty($allowance_id)) {
-        //         $this->session->set_flashdata('error', 'Select at least one employee and allowance.');
-        //         redirect('employee/bulk_assign_allowance');
-        //     }
-
-        //     $this->db->trans_start();
-        //     $success = true;
-
-        //     // Assign months to allowance master if variable
-        //     $allowance = $this->payroll_service->get_allowance_by_id($allowance_id);
-        //     if ($allowance['type'] == 'variable') {
-        //         $this->payroll_service->assign_months_to_allowance($allowance_id, $months, $year);
-        //     }
-
-        //     // Assign to selected employees
-        //     foreach ($employee_ids as $employee_id) {
-        //         $this->payroll_service->assign_employee_allowance($employee_id, $allowance_id, $allowance['amount']);
-        //     }
-
-        //     $this->db->trans_complete();
-
-        //     if ($this->db->trans_status()) {
-        //         $this->session->set_flashdata('success', 'Allowance assigned to ' . count($employee_ids) . ' employees.');
-        //         redirect('employee');
-        //     } else {
-        //         $this->session->set_flashdata('error', 'Failed to assign allowance.');
-        //     }
-        // }
         $data['title'] = 'Bulk Assign Allowances';
         $data['allowances'] = $this->payroll_service->get_all_allowances();
         $data['departments'] = $this->masters_service->get_all_departments_for_dropdown();
@@ -440,13 +399,43 @@ class Employee extends MX_Controller
         $this->load->view('layouts/footer');
     }
 
+    public function bulk_assign_deduction()
+    {
+
+        $data['title'] = 'Bulk Assign deductions';
+        $data['deductions'] = $this->payroll_service->get_all_deductions();
+        $data['departments'] = $this->masters_service->get_all_departments_for_dropdown();
+        $data['designations'] = $this->masters_service->get_all_designations_for_dropdown();
+        $data['employees'] = $this->employee_service->get_all_employees();
+        $data['csrf'] = array(
+            'name' => $this->security->get_csrf_token_name(),
+            'hash' => $this->security->get_csrf_hash()
+        );
+
+        $this->load->view('layouts/header', $data);
+        $this->load->view('layouts/sidebar');
+        $this->load->view('employee/bulk_assign_deduction', $data);
+        $this->load->view('layouts/footer');
+    }
+
+
+
+
+
+
+
+
+    /**
+     * Process bulk assign allowances form submission
+     * Validates input and calls service to assign/update allowances
+     */
     public function store_bulk_assign()
     {
         $this->form_validation->set_rules('allowance_ids[]', 'Allowances', 'required');
         $this->form_validation->set_rules('amount', 'Amount', 'numeric');
-        $this->form_validation->set_rules('start_date', 'Start Date', 'valid_date');
-        $this->form_validation->set_rules('expire_date', 'Expire Date', 'valid_date');
-        $this->form_validation->set_message('valid_date', 'The {field} must be a valid date in YYYY-MM-DD format.');
+        $this->form_validation->set_rules('start_date', 'Start Date');
+        $this->form_validation->set_rules('expire_date', 'Expire Date');
+        $this->form_validation->set_message('valid_date_nullable', 'The {field} must be a valid date in YYYY-MM-DD format or empty.');
 
         // Custom validation to ensure at least one target is selected
         $department_ids = $this->input->post('department_ids', TRUE) ?: array();
@@ -459,16 +448,8 @@ class Employee extends MX_Controller
         log_message('debug', 'Store bulk assign posted data: ' . print_r($this->input->post(), TRUE));
         if ($this->form_validation->run() === FALSE) {
             log_message('debug', 'Store bulk assign validation errors: ' . validation_errors());
-            $data['title'] = 'Bulk Assign Allowances';
-            $data['allowances'] = $this->employee_service->get_all_allowances();
-            $data['departments'] = $this->employee_service->get_all_departments_for_dropdown();
-            $data['designations'] = $this->employee_service->get_all_designations_for_dropdown();
-            $data['employees'] = $this->employee_service->get_all_employees();
-            $data['csrf'] = array(
-                'name' => $this->security->get_csrf_token_name(),
-                'hash' => $this->security->get_csrf_hash()
-            );
-            $this->load->view('bulk_assign_allowance', $data);
+            $this->session->set_flashdata('error', validation_errors());
+            redirect('employee/bulk_assign'); // Redirect to styled form
         } else {
             $allowance_ids = $this->input->post('allowance_ids', TRUE);
             $amount = $this->input->post('amount', TRUE) ?: NULL;
@@ -479,67 +460,113 @@ class Employee extends MX_Controller
             log_message('debug', 'Bulk assign data - Departments: ' . print_r($department_ids, TRUE));
             log_message('debug', 'Bulk assign data - Designations: ' . print_r($designation_ids, TRUE));
             log_message('debug', 'Bulk assign data - Employees: ' . print_r($employee_ids, TRUE));
-            $result = $this->employee_service->bulk_assign_allowances($allowance_ids, $department_ids, $designation_ids, $employee_ids, $amount, $start_date, $expire_date);
+            $result = $this->employee_service->bulk_assign_allowances_with_update($allowance_ids, $department_ids, $designation_ids, $employee_ids, $amount, $start_date, $expire_date);
             if ($result === TRUE) {
-                $this->session->set_flashdata('success', 'Allowances assigned successfully.');
+                $this->session->set_flashdata('success', 'Allowances assigned or updated successfully.');
                 redirect('employee');
             } else {
-                $this->session->set_flashdata('error', $result ?: 'Failed to assign allowances.');
-                redirect('employee/bulk_assign');
+                $this->session->set_flashdata('error', $result ?: 'Failed to assign or update allowances.');
+                redirect('employee/bulk_assign'); // Redirect to styled form
             }
         }
     }
 
-    public function bulk_assign_deduction()
+    public function store_bulk_assign_deduction()
     {
-        $data['title'] = 'Bulk Assign Deduction';
-        $data['deductions'] = $this->payroll_service->get_all_deductions();
+        $this->form_validation->set_rules('deduction_ids[]', 'Deductions', 'required');
+        $this->form_validation->set_rules('amount', 'Amount', 'numeric');
+        $this->form_validation->set_rules('start_date', 'Start Date');
+        $this->form_validation->set_rules('expire_date', 'Expire Date');
+        $this->form_validation->set_message('valid_date_nullable', 'The {field} must be a valid date in YYYY-MM-DD format or empty.');
+
+        // Custom validation to ensure at least one target is selected
+        $department_ids = $this->input->post('department_ids', TRUE) ?: array();
+        $designation_ids = $this->input->post('designation_ids', TRUE) ?: array();
+        $employee_ids = $this->input->post('employee_ids', TRUE) ?: array();
+        if (empty($department_ids) && empty($designation_ids) && empty($employee_ids)) {
+            $this->form_validation->set_rules('target', 'Target', 'required', array('required' => 'At least one Department, Designation, or Employee must be selected.'));
+        }
+
+        log_message('debug', 'Store bulk assign posted data: ' . print_r($this->input->post(), TRUE));
+        if ($this->form_validation->run() === FALSE) {
+            log_message('debug', 'Store bulk assign validation errors: ' . validation_errors());
+            $this->session->set_flashdata('error', validation_errors());
+            redirect('employee/bulk_assign_deduction'); // Redirect to styled form
+        } else {
+            $deduction_ids = $this->input->post('deduction_ids', TRUE);
+            $amount = $this->input->post('amount', TRUE) ?: NULL;
+            $start_date = $this->input->post('start_date', TRUE) ?: NULL;
+            $expire_date = $this->input->post('expire_date', TRUE) ?: NULL;
+
+            log_message('debug', 'Bulk assign data - deductions: ' . print_r($deduction_ids, TRUE));
+            log_message('debug', 'Bulk assign data - Departments: ' . print_r($department_ids, TRUE));
+            log_message('debug', 'Bulk assign data - Designations: ' . print_r($designation_ids, TRUE));
+            log_message('debug', 'Bulk assign data - Employees: ' . print_r($employee_ids, TRUE));
+            $result = $this->employee_service->bulk_assign_deductions_with_update($deduction_ids, $department_ids, $designation_ids, $employee_ids, $amount, $start_date, $expire_date);
+            if ($result === TRUE) {
+                $this->session->set_flashdata('success', 'Deductions assigned or updated successfully.');
+                redirect('employee');
+            } else {
+                $this->session->set_flashdata('error', $result ?: 'Failed to assign or update deductions.');
+                redirect('employee/bulk_assign'); // Redirect to styled form
+            }
+        }
+    }
+
+
+
+    /**
+     * Custom validation for nullable date fields
+     * Validates dates in YYYY-MM-DD format or allows empty
+     * @param string $date The date string to validate
+     * @return bool True if valid or empty, false otherwise
+     */
+    public function valid_date_nullable($date)
+    {
+        if (empty($date)) {
+            log_message('debug', 'Date validation: Empty date provided, considered valid');
+            return TRUE; // Allow empty dates
+        }
+        // Validate YYYY-MM-DD format
+        $date_format = '/^\d{4}-\d{2}-\d{2}$/';
+        if (!preg_match($date_format, $date)) {
+            log_message('error', 'Date validation failed: Invalid format for date ' . $date);
+            return FALSE;
+        }
+        // Check if date is valid
+        $d = DateTime::createFromFormat('Y-m-d', $date);
+        $is_valid = $d && $d->format('Y-m-d') === $date;
+        log_message('debug', 'Date validation: Date ' . $date . ' is ' . ($is_valid ? 'valid' : 'invalid'));
+        return $is_valid;
+    }
+
+    /**
+     * Display bulk assign allowances form
+     * Loads dropdown data and renders the view with proper styling
+     */
+    public function bulk_assign()
+    {
+        log_message('debug', 'Loading bulk assign allowances form');
+        $data['title'] = 'Bulk Assign Allowances';
+        $data['allowances'] = $this->employee_service->get_all_allowances();
+        $data['departments'] = $this->employee_service->get_all_departments_for_dropdown();
+        $data['designations'] = $this->employee_service->get_all_designations_for_dropdown();
         $data['employees'] = $this->employee_service->get_all_employees();
-        $data['csrf'] = [
+        $data['csrf'] = array(
             'name' => $this->security->get_csrf_token_name(),
             'hash' => $this->security->get_csrf_hash()
-        ];
+        );
+        // $this->load->view('layouts/default', $data); // Assumes a layout with styles
+        // $this->load->view('employee/bulk_assign_allowance', $data);
 
-        if ($this->input->post()) {
-            $deduction_id = $this->input->post('deduction_id');
-            $employee_ids = $this->input->post('employee_ids') ?: [];
-            $months = $this->input->post('months') ?: [];
-            $year = $this->input->post('year') ?: null;
-
-            if (empty($employee_ids) || empty($deduction_id)) {
-                $this->session->set_flashdata('error', 'Select at least one employee and deduction.');
-                redirect('employee/bulk_assign_deduction');
-            }
-
-            $this->db->trans_start();
-            $success = true;
-
-            // Assign months to deduction master if variable
-            $deduction = $this->payroll_service->get_deduction_by_id($deduction_id);
-            if ($deduction['type'] == 'variable') {
-                $this->payroll_service->assign_months_to_deduction($deduction_id, $months, $year);
-            }
-
-            // Assign to selected employees
-            foreach ($employee_ids as $employee_id) {
-                $this->payroll_service->assign_employee_deduction($employee_id, $deduction_id, $deduction['amount']);
-            }
-
-            $this->db->trans_complete();
-
-            if ($this->db->trans_status()) {
-                $this->session->set_flashdata('success', 'Deduction assigned to ' . count($employee_ids) . ' employees.');
-                redirect('employee');
-            } else {
-                $this->session->set_flashdata('error', 'Failed to assign deduction.');
-            }
-        }
-
-        $this->load->view('layouts/header', $data);
-        $this->load->view('layouts/sidebar');
-        $this->load->view('employee/bulk_assign_deduction', $data);
-        $this->load->view('layouts/footer');
+        // $this->load->view('layouts/header', $data);
+        // $this->load->view('layouts/sidebar');
+        $this->load->view('employee/bulk_assign_allowance', $data);
+        // $this->load->view('layouts/footer');
     }
+
+
+
 
     public function assign_allowance($id = null)
     {
